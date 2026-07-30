@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeartGuard — Risk Assessment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --surface2: #f1f5f9;
+            --border: #e2e8f0;
+            --red: #e63946;
+            --red-light: #fff1f2;
+            --red-border: #fecdd3;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --text-soft: #94a3b8;
+            --green: #16a34a;
+            --green-light: #f0fdf4;
+            --yellow: #d97706;
+            --yellow-light: #fffbeb;
+        }
+
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        nav {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 48px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-logo { font-size: 1.1rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+        .nav-logo-icon { width: 28px; height: 28px; background: var(--red); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; }
+        .nav-logo span { color: var(--red); }
+        .nav-links { display: flex; gap: 8px; align-items: center; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.875rem; font-weight: 500; padding: 8px 16px; border-radius: 6px; transition: all 0.2s; }
+        .nav-links a:hover { color: var(--text); background: var(--surface2); }
+        .nav-links a.active { color: var(--red); background: var(--red-light); }
+        .nav-user { font-size: 0.82rem; color: var(--text-muted); padding: 8px 12px; }
+
+        .page-header { text-align: center; padding: 48px 24px 32px; }
+        .page-header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
+        .page-header p { color: var(--text-muted); font-size: 0.9rem; }
+
+        /* STEPS */
+        .steps-container { max-width: 600px; margin: 0 auto 32px; padding: 0 24px; }
+        .steps { display: flex; align-items: center; justify-content: center; gap: 0; }
+
+        .step { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; position: relative; }
+
+        .step-circle {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; font-weight: 700;
+            border: 2px solid var(--border);
+            background: var(--surface);
+            color: var(--text-soft);
+            transition: all 0.3s;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step.active .step-circle { background: var(--red); border-color: var(--red); color: white; }
+        .step.completed .step-circle { background: var(--green); border-color: var(--green); color: white; }
+
+        .step-label { font-size: 0.72rem; font-weight: 600; color: var(--text-soft); text-align: center; }
+        .step.active .step-label { color: var(--red); }
+        .step.completed .step-label { color: var(--green); }
+
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .step-line.completed { background: var(--green); }
+
+        /* FORM */
+        .form-container { max-width: 640px; margin: 0 auto 80px; padding: 0 24px; }
+
+        .step-panel { display: none; }
+        .step-panel.active { display: block; }
+
+        .panel-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 24px 28px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface2);
+        }
+
+        .panel-header h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 4px; }
+        .panel-header p { font-size: 0.82rem; color: var(--text-muted); }
+
+        .panel-body { padding: 24px 28px; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-grid.single { grid-template-columns: 1fr; }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+
+        label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
+
+        .tooltip-wrap { position: relative; display: inline-flex; }
+        .tooltip-icon { width: 14px; height: 14px; background: var(--surface2); border: 1px solid var(--border); color: var(--text-soft); border-radius: 50%; font-size: 9px; display: inline-flex; align-items: center; justify-content: center; cursor: help; font-style: italic; font-weight: 600; }
+        .tooltip-text { visibility: hidden; background: var(--text); color: #fff; font-size: 0.72rem; line-height: 1.5; border-radius: 8px; padding: 8px 12px; position: absolute; z-index: 10; bottom: 130%; left: 50%; transform: translateX(-50%); width: 200px; text-align: left; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+        .tooltip-wrap:hover .tooltip-text { visibility: visible; }
+
+        input[type="number"], input[type="text"], select {
+            padding: 11px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.92rem;
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background: var(--surface);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
+            appearance: none;
+        }
+
+        input:focus, select:focus { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-light); }
+        input::placeholder { color: var(--text-soft); }
+
+        /* Toggle buttons for sex */
+        .toggle-group { display: flex; gap: 8px; }
+        .toggle-btn {
+            flex: 1; padding: 11px; border: 1px solid var(--border);
+            border-radius: 8px; font-size: 0.9rem; font-weight: 500;
+            font-family: 'Inter', sans-serif; cursor: pointer;
+            background: var(--surface); color: var(--text-muted);
+            transition: all 0.2s; text-align: center;
+        }
+        .toggle-btn.selected { background: var(--red-light); border-color: var(--red); color: var(--red); font-weight: 600; }
+
+        /* BMI display */
+        .bmi-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .bmi-card span { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-soft); }
+        .bmi-card strong { font-size: 1.2rem; font-weight: 700; color: var(--text); }
+
+        /* Navigation buttons */
+        .panel-footer {
+            padding: 20px 28px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-back {
+            padding: 10px 20px;
+            background: var(--surface2);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-back:hover { background: var(--border); }
+
+        .btn-next {
+            padding: 10px 24px;
+            background: var(--red);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-next:hover { background: #c1121f; transform: translateY(-1px); }
+
+        /* RESULT */
+        .result { display: none; margin-top: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+        .result-header { padding: 40px 32px; text-align: center; border-bottom: 1px solid var(--border); }
+        .risk-score { font-size: 4.5rem; font-weight: 800; letter-spacing: -2px; line-height: 1; margin-bottom: 12px; }
+        .risk-low { color: var(--green); }
+        .risk-moderate { color: var(--yellow); }
+        .risk-high { color: var(--red); }
+        .risk-badge { display: inline-block; padding: 5px 16px; border-radius: 100px; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 4px; }
+        .badge-low { background: var(--green-light); color: var(--green); }
+        .badge-moderate { background: var(--yellow-light); color: var(--yellow); }
+        .badge-high { background: var(--red-light); color: var(--red); }
+
+        .result-meta { display: flex; justify-content: center; gap: 40px; padding: 20px 32px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+        .meta-item { text-align: center; }
+        .meta-item span { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-soft); display: block; margin-bottom: 4px; }
+        .meta-item strong { font-size: 1.1rem; color: var(--text); font-weight: 600; }
+
+        .result-tips { padding: 28px 32px; }
+        .result-tips h3 { font-size: 0.68rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text-soft); margin-bottom: 14px; }
+        .tip-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.875rem; color: var(--text-muted); line-height: 1.5; }
+        .tip-item:last-child { border-bottom: none; }
+        .tip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); margin-top: 6px; flex-shrink: 0; }
+
+        .disclaimer { padding: 16px 32px; background: var(--surface2); font-size: 0.73rem; color: var(--text-soft); border-top: 1px solid var(--border); }
+
+        .btn-new { display: block; text-align: center; margin: 20px 32px; padding: 12px; background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+        .btn-new:hover { background: var(--border); }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-logo">
+        <div class="nav-logo-icon">❤</div>
+        <span>Heart</span>Guard
+    </div>
+    <div class="nav-links">
+        <a href="/dashboard" class="{{ 'active' if active == 'dashboard' }}">Dashboard</a>
+        <a href="/predict-page" class="{{ 'active' if active == 'predict' }}">New Prediction</a>
+        <a href="/history" class="{{ 'active' if active == 'history' }}">History</a>
+        <span class="nav-user">👤 {{ user.name }}</span>
+        <a href="/logout">Logout</a>
+    </div>
+</nav>
+
+<div class="page-header">
+    <div style="margin-bottom:16px;">
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="28" cy="28" r="28" fill="#fff1f2"/>
+            <path d="M28 42 C28 42 14 33 14 23 C14 17 19 13 24 13 C26.5 13 28 15 28 15 C28 15 29.5 13 32 13 C37 13 42 17 42 23 C42 33 28 42 28 42Z" fill="#e63946"/>
+            <path d="M18 27 L22 27 L24.5 21 L27.5 33 L30 25 L32 27 L38 27" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                <animate attributeName="stroke-dasharray" from="0 100" to="100 0" dur="1.5s" fill="freeze"/>
+            </path>
+        </svg>
+    </div>
+    <h1>Heart Disease Risk Assessment</h1>
+    <p>Enter your health parameters for an AI-powered cardiac risk prediction.</p>
+</div>
+
+<!-- STEPS INDICATOR -->
+<div class="steps-container">
+    <div class="steps">
+        <div class="step active" id="step-indicator-1">
+            <div class="step-circle">1</div>
+            <div class="step-label">Basic Info</div>
+        </div>
+        <div class="step-line" id="line-1"></div>
+        <div class="step" id="step-indicator-2">
+            <div class="step-circle">2</div>
+            <div class="step-label">Vitals</div>
+        </div>
+        <div class="step-line" id="line-2"></div>
+        <div class="step" id="step-indicator-3">
+            <div class="step-circle">3</div>
+            <div class="step-label">Lifestyle</div>
+        </div>
+    </div>
+</div>
+
+<div class="form-container">
+
+    <!-- STEP 1: Basic Info -->
+    <div class="step-panel active" id="panel-1">
+        <div class="panel-card">
+            <div class="panel-header">
+                <h2>Basic Information</h2>
+                <p>Your demographics and body measurements</p>
+            </div>
+            <div class="panel-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Age</label>
+                        <input type="number" id="age" placeholder="e.g. 45" min="1" max="120" oninput="validateField('age')">
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <div class="toggle-group">
+                            <div class="toggle-btn selected" id="btn-female" onclick="selectGender(1, this)">Female</div>
+                            <div class="toggle-btn" id="btn-male" onclick="selectGender(2, this)">Male</div>
+                        </div>
+                        <input type="hidden" id="gender" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Height (cm)</label>
+                        <input type="number" id="height" placeholder="e.g. 170" oninput="calcBMI(); validateField('height')">
+                    </div>
+                    <div class="form-group">
+                        <label>Weight (kg)</label>
+                        <input type="number" id="weight" placeholder="e.g. 70" oninput="calcBMI(); validateField('weight')">
+                    </div>
+                    <div class="form-group full">
+                        <label>BMI (Auto-calculated)</label>
+                        <div class="bmi-card">
+                            <span>Body Mass Index</span>
+                            <strong id="bmiDisplay">—</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <div></div>
+                <button class="btn-next" onclick="goToStep(2)">Next: Vitals →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 2: Vitals -->
+    <div class="step-panel" id="panel-2">
+        <div class="panel-card">
+            <div class="panel-header">
+                <h2>Vital Signs & Clinical Markers</h2>
+                <p>Blood pressure and clinical test results</p>
+            </div>
+            <div class="panel-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>
+                            Systolic BP (mmHg)
+                            <div class="tooltip-wrap">
+                                <span class="tooltip-icon">i</span>
+                                <span class="tooltip-text">Upper number in blood pressure reading. Normal is around 120.</span>
+                            </div>
+                        </label>
+                        <input type="number" id="ap_hi" placeholder="e.g. 120" oninput="validateField('ap_hi')">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            Diastolic BP (mmHg)
+                            <div class="tooltip-wrap">
+                                <span class="tooltip-icon">i</span>
+                                <span class="tooltip-text">Lower number in blood pressure reading. Normal is around 80.</span>
+                            </div>
+                        </label>
+                        <input type="number" id="ap_lo" placeholder="e.g. 80" oninput="validateField('ap_lo')">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            Cholesterol
+                            <div class="tooltip-wrap">
+                                <span class="tooltip-icon">i</span>
+                                <span class="tooltip-text">1 = Normal, 2 = Above Normal, 3 = Well Above Normal</span>
+                            </div>
+                        </label>
+                        <select id="cholesterol">
+                            <option value="1">Normal</option>
+                            <option value="2">Above Normal</option>
+                            <option value="3">Well Above Normal</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            Glucose Level
+                            <div class="tooltip-wrap">
+                                <span class="tooltip-icon">i</span>
+                                <span class="tooltip-text">1 = Normal, 2 = Above Normal, 3 = Well Above Normal</span>
+                            </div>
+                        </label>
+                        <select id="gluc">
+                            <option value="1">Normal</option>
+                            <option value="2">Above Normal</option>
+                            <option value="3">Well Above Normal</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <button class="btn-back" onclick="goToStep(1)">← Back</button>
+                <button class="btn-next" onclick="goToStep(3)">Next: Lifestyle →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 3: Lifestyle -->
+    <div class="step-panel" id="panel-3">
+        <div class="panel-card">
+            <div class="panel-header">
+                <h2>Lifestyle Factors</h2>
+                <p>Your daily habits and lifestyle choices</p>
+            </div>
+            <div class="panel-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Do you smoke?</label>
+                        <select id="smoke">
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Alcohol Consumption</label>
+                        <select id="alco">
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group full">
+                        <label>Physically Active?</label>
+                        <select id="active">
+                            <option value="1">Yes — I exercise regularly</option>
+                            <option value="0">No — I am mostly sedentary</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <button class="btn-back" onclick="goToStep(2)">← Back</button>
+                <button class="btn-next" onclick="predict()">Get My Risk Assessment →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="result" id="result">
+        <div class="result-header">
+            <div class="risk-score" id="riskScore"></div>
+            <div id="riskBadge"></div>
+        </div>
+        <div class="result-meta">
+            <div class="meta-item">
+                <span>BMI</span>
+                <strong id="resultBmi">—</strong>
+            </div>
+            <div class="meta-item">
+                <span>Risk Level</span>
+                <strong id="resultLevel">—</strong>
+            </div>
+        </div>
+        <div class="result-tips">
+            <h3>Recommendations</h3>
+            <div id="tips"></div>
+        </div>
+        <button class="btn-new" onclick="resetForm()">← Start New Assessment</button>
+        <div class="disclaimer">⚠ This tool is for informational purposes only and does not constitute medical advice. Please consult a qualified healthcare professional.</div>
+    </div>
+
+</div>
+
+<script>
+    let currentStep = 1;
+
+    function selectGender(val, el) {
+        document.getElementById("gender").value = val;
+        document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("selected"));
+        el.classList.add("selected");
+    }
+
+    const ranges = {
+    age: { min: 1, max: 120, warnings: [
+        { max: 17, msg: "⚠ Age seems too young for cardiac assessment" },
+        { min: 100, msg: "⚠ Please verify this age" }
+    ]},
+    height: { min: 100, max: 220, warnings: [
+        { max: 130, msg: "⚠ Height seems unusually low" },
+        { min: 210, msg: "⚠ Height seems unusually high" }
+    ]},
+    weight: { min: 30, max: 200, warnings: [
+        { max: 40, msg: "⚠ Weight seems unusually low" },
+        { min: 150, msg: "⚠ Very high weight — high cardiac risk factor" }
+    ]},
+    ap_hi: { min: 80, max: 250, warnings: [
+        { max: 90, msg: "⚠ Very low systolic BP — please verify" },
+        { min: 140, max: 159, msg: "⚠ Stage 1 hypertension range" },
+        { min: 160, max: 179, msg: "⚠ Stage 2 hypertension — consult a doctor" },
+        { min: 180, msg: "⚠ Hypertensive crisis — seek immediate medical attention" }
+    ]},
+    ap_lo: { min: 40, max: 200, warnings: [
+        { max: 60, msg: "⚠ Very low diastolic BP — please verify" },
+        { min: 90, max: 99, msg: "⚠ Stage 1 hypertension range" },
+        { min: 100, msg: "⚠ High diastolic BP — consult a doctor" }
+    ]}
+};
+
+function validateField(fieldId) {
+    const input = document.getElementById(fieldId);
+    const val = parseFloat(input.value);
+    if (!val) return;
+
+    // Remove existing warning
+    const existing = document.getElementById(`warn-${fieldId}`);
+    if (existing) existing.remove();
+
+    const range = ranges[fieldId];
+    if (!range) return;
+
+    let msg = null;
+
+    if (val < range.min || val > range.max) {
+        msg = `⚠ Please enter a value between ${range.min} and ${range.max}`;
+    } else {
+        for (const w of range.warnings) {
+            const aboveMin = w.min === undefined || val >= w.min;
+            const belowMax = w.max === undefined || val <= w.max;
+            if (aboveMin && belowMax) { msg = w.msg; break; }
+        }
+    }
+
+    if (msg) {
+        const warn = document.createElement("div");
+        warn.id = `warn-${fieldId}`;
+        warn.style.cssText = "font-size:0.75rem;color:#d97706;margin-top:4px;font-weight:500;";
+        warn.textContent = msg;
+        input.parentNode.appendChild(warn);
+    }
+}
+
+    function calcBMI() {
+        const h = parseFloat(document.getElementById("height").value);
+        const w = parseFloat(document.getElementById("weight").value);
+        if (h > 0 && w > 0) {
+            document.getElementById("bmiDisplay").textContent = (w / ((h/100)**2)).toFixed(1);
+        }
+    }
+
+    function goToStep(step) {
+    // Validate before proceeding
+    if (step === 2) {
+        const age = document.getElementById("age").value;
+        const height = document.getElementById("height").value;
+        const weight = document.getElementById("weight").value;
+
+        if (!age || age < 1 || age > 120) {
+            alert("Please enter a valid age (1-120)");
+            return;
+        }
+        if (!height || height < 100 || height > 220) {
+            alert("Please enter a valid height (100-220 cm)");
+            return;
+        }
+        if (!weight || weight < 30 || weight > 200) {
+            alert("Please enter a valid weight (30-200 kg)");
+            return;
+        }
+    }
+
+    if (step === 3) {
+        const ap_hi = document.getElementById("ap_hi").value;
+        const ap_lo = document.getElementById("ap_lo").value;
+
+        if (!ap_hi || ap_hi < 80 || ap_hi > 250) {
+            alert("Please enter a valid systolic blood pressure (80-250)");
+            return;
+        }
+        if (!ap_lo || ap_lo < 40 || ap_lo > 200) {
+            alert("Please enter a valid diastolic blood pressure (40-200)");
+            return;
+        }
+        if (parseInt(ap_hi) <= parseInt(ap_lo)) {
+            alert("Systolic BP must be higher than Diastolic BP");
+            return;
+        }
+    }
+
+    // Hide all panels
+    document.querySelectorAll(".step-panel").forEach(p => p.classList.remove("active"));
+    document.getElementById(`panel-${step}`).classList.add("active");
+
+    // Update step indicators
+    for (let i = 1; i <= 3; i++) {
+        const indicator = document.getElementById(`step-indicator-${i}`);
+        indicator.classList.remove("active", "completed");
+        if (i < step) indicator.classList.add("completed");
+        else if (i === step) indicator.classList.add("active");
+    }
+
+    // Update lines
+    for (let i = 1; i <= 2; i++) {
+        const line = document.getElementById(`line-${i}`);
+        line.classList.toggle("completed", i < step);
+    }
+
+    currentStep = step;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+    function resetForm() {
+        document.getElementById("result").style.display = "none";
+        document.getElementById(`panel-1`).classList.add("active");
+        goToStep(1);
+    }
+
+    async function predict() {
+        const data = {
+            age: document.getElementById("age").value,
+            gender: document.getElementById("gender").value,
+            height: document.getElementById("height").value,
+            weight: document.getElementById("weight").value,
+            ap_hi: document.getElementById("ap_hi").value,
+            ap_lo: document.getElementById("ap_lo").value,
+            cholesterol: document.getElementById("cholesterol").value,
+            gluc: document.getElementById("gluc").value,
+            smoke: document.getElementById("smoke").value,
+            alco: document.getElementById("alco").value,
+            active: document.getElementById("active").value
+        };
+
+        const response = await fetch("/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        const level = result.risk_level.toLowerCase();
+
+        // Hide all panels show result
+        document.querySelectorAll(".step-panel").forEach(p => p.classList.remove("active"));
+
+        document.getElementById("riskScore").textContent = result.risk_percent + "%";
+        document.getElementById("riskScore").className = "risk-score risk-" + level;
+        document.getElementById("riskBadge").innerHTML = `<span class="risk-badge badge-${level}">${result.risk_level} Risk</span>`;
+        document.getElementById("resultBmi").textContent = result.bmi;
+        document.getElementById("resultLevel").textContent = result.risk_level;
+
+        let deltaHtml = "";
+        if (result.delta !== null) {
+            if (result.delta > 0) {
+                deltaHtml = `<div style="color:#e63946;font-size:0.85rem;font-weight:600;margin-top:8px;">▲ Risk increased by ${Math.abs(result.delta)}% since last checkup</div>`;
+            } else if (result.delta < 0) {
+                deltaHtml = `<div style="color:#16a34a;font-size:0.85rem;font-weight:600;margin-top:8px;">▼ Risk decreased by ${Math.abs(result.delta)}% since last checkup</div>`;
+            } else {
+                deltaHtml = `<div style="color:#64748b;font-size:0.85rem;margin-top:8px;">Risk unchanged since last checkup</div>`;
+            }
+        }
+        document.getElementById("riskBadge").innerHTML += deltaHtml;
+
+        let suggestionsHtml = "";
+        if (result.suggestions && result.suggestions.length > 0) {
+            suggestionsHtml = `
+                <div style="margin-bottom:16px;padding:16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
+                    <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#16a34a;margin-bottom:10px;">Progress Insights</div>
+                    ${result.suggestions.map(s => `<div style="font-size:0.85rem;color:#15803d;padding:4px 0;border-bottom:1px solid #dcfce7;">• ${s}</div>`).join("")}
+                </div>
+            `;
+        }
+
+        const tipsMap = {
+            "Low": [
+                "Maintain your current healthy lifestyle",
+                "Exercise regularly — at least 30 mins a day",
+                "Keep cholesterol and blood pressure in check",
+                "Avoid smoking and limit alcohol intake"
+            ],
+            "Moderate": [
+                "Consult a doctor for a full cardiac checkup",
+                "Reduce saturated fats and processed foods",
+                "Monitor your blood pressure regularly",
+                "Increase physical activity gradually",
+                "Manage stress through meditation or yoga"
+            ],
+            "High": [
+                "Seek medical attention as soon as possible",
+                "Avoid strenuous physical activity until cleared by a doctor",
+                "Strictly monitor blood pressure and cholesterol",
+                "Quit smoking immediately if applicable",
+                "Follow a heart-healthy diet — low sodium, low fat"
+            ]
+        };
+
+        document.getElementById("tips").innerHTML = suggestionsHtml + tipsMap[result.risk_level]
+            .map(t => `<div class="tip-item"><div class="tip-dot"></div><span>${t}</span></div>`)
+            .join("");
+
+        const resultEl = document.getElementById("result");
+        resultEl.style.display = "block";
+        resultEl.scrollIntoView({ behavior: "smooth" });
+    }
+</script>
+
+</body>
+</html>

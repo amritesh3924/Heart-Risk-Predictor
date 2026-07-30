@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeartGuard — My Health History</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --surface2: #f1f5f9;
+            --border: #e2e8f0;
+            --red: #e63946;
+            --red-light: #fff1f2;
+            --red-border: #fecdd3;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --text-soft: #94a3b8;
+            --green: #16a34a;
+            --green-light: #f0fdf4;
+            --yellow: #d97706;
+            --yellow-light: #fffbeb;
+        }
+
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        nav {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 48px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-logo { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+        .nav-logo span { color: var(--red); }
+        .nav-links { display: flex; gap: 8px; align-items: center; }
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .nav-links a:hover { color: var(--text); background: var(--surface2); }
+        .nav-links a.active { color: var(--red); background: var(--red-light); }
+        .nav-user {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            padding: 8px 16px;
+        }
+
+        .content { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+
+        .page-header { margin-bottom: 32px; }
+        .page-header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
+        .page-header p { color: var(--text-muted); font-size: 0.9rem; }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        .empty-state h3 { font-size: 1.1rem; margin-bottom: 8px; color: var(--text); }
+        .empty-state p { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 20px; }
+        .empty-state a {
+            display: inline-block;
+            padding: 10px 24px;
+            background: var(--red);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .chart-title {
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-soft);
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .stat-card span {
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-soft);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .stat-card strong {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .stat-low { color: var(--green); }
+        .stat-moderate { color: var(--yellow); }
+        .stat-high { color: var(--red); }
+
+        .section-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-soft);
+            margin-bottom: 12px;
+        }
+
+        .prediction-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .prediction-card:hover { background: var(--surface2); }
+
+        .pred-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            min-width: 140px;
+        }
+
+        .pred-details {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .pred-detail {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .pred-detail strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .pred-risk {
+            text-align: right;
+            min-width: 100px;
+        }
+
+        .pred-score {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 100px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-low { background: var(--green-light); color: var(--green); }
+        .badge-moderate { background: var(--yellow-light); color: var(--yellow); }
+        .badge-high { background: var(--red-light); color: var(--red); }
+
+        .delta-up { color: var(--red); font-size: 0.75rem; font-weight: 600; }
+        .delta-down { color: var(--green); font-size: 0.75rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-logo">❤ <span>Heart</span>Guard</div>
+    <div class="nav-links">
+        <a href="/dashboard" class="{{ 'active' if active == 'dashboard' }}">Dashboard</a>
+        <a href="/predict-page" class="{{ 'active' if active == 'predict' }}">New Prediction</a>
+        <a href="/history" class="{{ 'active' if active == 'history' }}">History</a>
+        <span class="nav-user">👤 {{ user.name }}</span>
+        <a href="/logout">Logout</a>
+    </div>
+</nav>
+
+<div class="content">
+
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+    <div>
+        <h1>My Health History</h1>
+        <p>Track your cardiovascular risk over time</p>
+    </div>
+    {% if predictions %}
+    <form method="POST" action="/clear-history" onsubmit="return confirm('Are you sure you want to clear all history?')">
+        <button type="submit" style="padding:10px 20px; background:var(--red-light); color:var(--red); border:1px solid var(--red-border); border-radius:8px; font-size:0.82rem; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;">
+            Clear History
+        </button>
+    </form>
+    {% endif %}
+</div>
+
+    {% if predictions %}
+
+        {% set latest = predictions[0] %}
+        {% set total = predictions|length %}
+        {% set avg = (predictions|sum(attribute='risk_percent') / total)|round(1) %}
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span>Latest Risk</span>
+                <strong class="stat-{{ latest.risk_level|lower }}">{{ latest.risk_percent }}%</strong>
+            </div>
+            <div class="stat-card">
+                <span>Total Checkups</span>
+                <strong>{{ total }}</strong>
+            </div>
+            <div class="stat-card">
+                <span>Average Risk</span>
+                <strong>{{ avg }}%</strong>
+            </div>
+        </div>
+
+
+        <div class="section-label">All Predictions</div>
+
+        {% for pred in predictions %}
+        <div class="prediction-card">
+            <div class="pred-date">
+                {{ pred.timestamp.strftime('%d %b %Y') }}<br>
+                <span style="font-size:0.72rem;color:var(--text-soft)">{{ pred.timestamp.strftime('%I:%M %p') }}</span>
+            </div>
+            <div class="pred-details">
+                <div class="pred-detail"><strong>Age:</strong> {{ pred.age }}</div>
+                <div class="pred-detail"><strong>BMI:</strong> {{ pred.bmi }}</div>
+                <div class="pred-detail"><strong>BP:</strong> {{ pred.ap_hi }}/{{ pred.ap_lo }}</div>
+                <div class="pred-detail"><strong>Smoking:</strong> {{ "Yes" if pred.smoke else "No" }}</div>
+                <div class="pred-detail"><strong>Active:</strong> {{ "Yes" if pred.active else "No" }}</div>
+            </div>
+            <div class="pred-risk">
+    <div class="pred-score stat-{{ pred.risk_level|lower }}">{{ pred.risk_percent }}%</div>
+    <span class="risk-badge badge-{{ pred.risk_level|lower }}">{{ pred.risk_level }}</span>
+    <div style="margin-top:8px;display:flex;gap:6px;">
+        <a href="/report/{{ pred.id }}" style="font-size:0.72rem;color:var(--red);text-decoration:none;font-weight:600;padding:4px 10px;border:1px solid var(--red-border);border-radius:6px;background:var(--red-light);">📄 Report</a>
+        <form method="POST" action="/delete-prediction/{{ pred.id }}" style="margin:0;">
+            <button type="submit" onclick="return confirm('Delete this record?')" style="font-size:0.72rem;color:var(--text-muted);background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;">🗑 Delete</button>
+        </form>
+    </div>
+</div>
+        </div>
+        {% endfor %}
+
+    {% else %}
+        <div class="empty-state">
+    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:20px;">
+        <circle cx="60" cy="60" r="60" fill="#fff1f2"/>
+        <path d="M60 88 C60 88 30 70 30 50 C30 39 38 32 47 32 C53 32 60 38 60 38 C60 38 67 32 73 32 C82 32 90 39 90 50 C90 70 60 88 60 88Z" fill="#fecdd3"/>
+        <path d="M60 88 C60 88 30 70 30 50 C30 39 38 32 47 32 C53 32 60 38 60 38 C60 38 67 32 73 32 C82 32 90 39 90 50 C90 70 60 88 60 88Z" fill="#e63946" opacity="0.5"/>
+        <path d="M38 55 L46 55 L50 45 L55 65 L59 50 L63 55 L82 55" stroke="#e63946" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <circle cx="85" cy="35" r="3" fill="#fecdd3"/>
+        <circle cx="32" cy="75" r="2" fill="#fecdd3"/>
+        <circle cx="88" cy="72" r="4" fill="#fecdd3"/>
+    </svg>
+    <h3>No predictions yet</h3>
+    <p>Take your first cardiovascular risk assessment to start tracking your health.</p>
+    <a href="/predict-page">Get Started →</a>
+</div>
+    {% endif %}
+
+</div>
+
+
+
+</body>
+</html>

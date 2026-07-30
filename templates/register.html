@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeartGuard — Create Account</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --surface2: #f1f5f9;
+            --border: #e2e8f0;
+            --red: #e63946;
+            --red-light: #fff1f2;
+            --red-border: #fecdd3;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --text-soft: #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .left-panel {
+            flex: 1;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 60% 60%, rgba(230,57,70,0.15) 0%, transparent 60%);
+        }
+
+        .left-panel-content { position: relative; z-index: 1; text-align: center; width: 100%; max-width: 360px; }
+
+        .left-panel svg { width: 220px; height: 220px; margin-bottom: 32px; }
+
+        .left-panel h2 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; }
+
+        .left-panel p { font-size: 0.9rem; opacity: 0.7; line-height: 1.7; margin-bottom: 32px; }
+
+        .steps-preview { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+
+        .step-preview-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+
+        .step-num {
+            width: 28px; height: 28px;
+            background: var(--red);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .right-panel {
+            width: 480px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px;
+            background: var(--surface);
+        }
+
+        .card { width: 100%; max-width: 380px; }
+
+        .logo { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .logo-icon { width: 28px; height: 28px; background: var(--red); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; }
+        .logo span { color: var(--red); }
+
+        .card-title { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; margin-top: 20px; }
+        .card-subtitle { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 32px; }
+
+        .flash { background: var(--red-light); border: 1px solid var(--red-border); color: var(--red); font-size: 0.82rem; padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; }
+
+        .form-group { margin-bottom: 16px; }
+
+        label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+        input {
+            width: 100%; padding: 11px 14px;
+            border: 1px solid var(--border); border-radius: 8px;
+            font-size: 0.92rem; font-family: 'Inter', sans-serif;
+            color: var(--text); background: var(--surface);
+            outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-light); }
+
+        .btn {
+            width: 100%; padding: 12px;
+            background: var(--red); color: white; border: none;
+            border-radius: 8px; font-size: 0.92rem; font-weight: 600;
+            font-family: 'Inter', sans-serif; cursor: pointer;
+            margin-top: 8px; transition: all 0.2s;
+        }
+
+        .btn:hover { background: #c1121f; transform: translateY(-1px); }
+
+        .footer-text { text-align: center; margin-top: 20px; font-size: 0.82rem; color: var(--text-muted); }
+        .footer-text a { color: var(--red); text-decoration: none; font-weight: 500; }
+
+        @media (max-width: 768px) {
+            .left-panel { display: none; }
+            .right-panel { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="left-panel">
+        <div class="left-panel-content">
+            <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="100" cy="100" r="85" fill="rgba(230,57,70,0.1)" stroke="rgba(230,57,70,0.2)" stroke-width="1"/>
+                <circle cx="100" cy="100" r="65" fill="rgba(230,57,70,0.08)" stroke="rgba(230,57,70,0.15)" stroke-width="1"/>
+                <path d="M100 148 C100 148 55 118 55 86 C55 69 68 57 82 57 C91 57 100 65 100 65 C100 65 109 57 118 57 C132 57 145 69 145 86 C145 118 100 148 100 148Z" fill="rgba(230,57,70,0.9)"/>
+                <path d="M65 98 L78 98 L85 82 L93 114 L101 88 L108 98 L135 98" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <circle cx="150" cy="50" r="4" fill="rgba(230,57,70,0.4)"/>
+                <circle cx="40" cy="140" r="3" fill="rgba(230,57,70,0.3)"/>
+                <circle cx="160" cy="140" r="5" fill="rgba(230,57,70,0.2)"/>
+                <circle cx="45" cy="65" r="3" fill="rgba(230,57,70,0.3)"/>
+            </svg>
+
+            <h2>Start Your Heart Health Journey</h2>
+            <p>Join thousands of users tracking their cardiovascular health with AI-powered insights.</p>
+
+            <div class="steps-preview">
+                <div class="step-preview-item">
+                    <div class="step-num">1</div>
+                    <span>Create your free account in seconds</span>
+                </div>
+                <div class="step-preview-item">
+                    <div class="step-num">2</div>
+                    <span>Enter your health details</span>
+                </div>
+                <div class="step-preview-item">
+                    <div class="step-num">3</div>
+                    <span>Get instant risk assessment & track progress</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <div class="card">
+            <div class="logo">
+                <div class="logo-icon">❤</div>
+                <span>Heart</span>Guard
+            </div>
+            <div class="card-title">Create your account</div>
+            <div class="card-subtitle">Free forever. No credit card required.</div>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash">{{ messages[0] }}</div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="/register">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="name" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn">Create Account →</button>
+            </form>
+
+            <div class="footer-text">
+                Already have an account? <a href="/login">Sign in</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

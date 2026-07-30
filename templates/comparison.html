@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeartGuard — Model Comparison</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --surface2: #f1f5f9;
+            --border: #e2e8f0;
+            --red: #e63946;
+            --red-light: #fff1f2;
+            --red-border: #fecdd3;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --text-soft: #94a3b8;
+            --green: #16a34a;
+            --green-light: #f0fdf4;
+            --blue: #2563eb;
+            --blue-light: #eff6ff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        nav {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 48px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-logo {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .nav-logo span { color: var(--red); }
+
+        .nav-links { display: flex; gap: 8px; }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover { color: var(--text); background: var(--surface2); }
+        .nav-links a.active { color: var(--red); background: var(--red-light); }
+
+        .hero {
+            text-align: center;
+            padding: 64px 24px 40px;
+            max-width: 580px;
+            margin: 0 auto;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--red-light);
+            border: 1px solid var(--red-border);
+            color: var(--red);
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 6px 14px;
+            border-radius: 100px;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            line-height: 1.15;
+            margin-bottom: 14px;
+        }
+
+        .hero h1 span { color: var(--red); }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .content {
+            max-width: 780px;
+            margin: 0 auto 80px;
+            padding: 0 24px;
+        }
+
+        .selected-banner {
+            background: var(--green-light);
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 32px;
+        }
+
+        .selected-icon {
+            width: 36px;
+            height: 36px;
+            background: #dcfce7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            color: var(--green);
+        }
+
+        .selected-text h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--green);
+            margin-bottom: 3px;
+        }
+
+        .selected-text p {
+            font-size: 0.78rem;
+            color: #4ade80;
+        }
+
+        .section-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-soft);
+            margin-bottom: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        thead tr {
+            background: var(--surface2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        td {
+            padding: 14px 20px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover { background: var(--surface2); }
+        td:first-child { color: var(--text); font-weight: 500; }
+
+        .winner {
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 32px;
+        }
+
+        .chart-title {
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-soft);
+            margin-bottom: 24px;
+        }
+
+        .model-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .model-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+        }
+
+        .model-card.winner-card {
+            border-color: #bbf7d0;
+            background: var(--green-light);
+        }
+
+        .model-card h4 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .model-card.winner-card h4 { color: var(--green); }
+
+        .model-card .big-num {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -1px;
+        }
+
+        .model-card.winner-card .big-num { color: var(--green); }
+
+        .model-card p {
+            font-size: 0.75rem;
+            color: var(--text-soft);
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-logo">❤ <span>Heart</span>Guard</div>
+    <div class="nav-links">
+        <a href="/">Predictor</a>
+        <a href="/comparison" class="active">Model Comparison</a>
+    </div>
+</nav>
+
+<div class="hero">
+    <div class="hero-badge">● Model Analysis</div>
+    <h1>Performance<br><span>Comparison</span></h1>
+    <p>Evaluation of Logistic Regression vs Random Forest across key classification metrics.</p>
+</div>
+
+<div class="content">
+
+    <div class="selected-banner">
+        <div class="selected-icon">✓</div>
+        <div class="selected-text">
+            <h3>Deployed Model: Random Forest</h3>
+            <p>Selected based on superior performance across all evaluation metrics</p>
+        </div>
+    </div>
+
+    <div class="model-cards">
+        <div class="model-card">
+            <h4>Logistic Regression</h4>
+            <div class="big-num">{{ results["Logistic Regression"]["Accuracy"] }}</div>
+            <p>Accuracy Score</p>
+        </div>
+        <div class="model-card winner-card">
+            <h4>Random Forest ✓</h4>
+            <div class="big-num">{{ results["Random Forest"]["Accuracy"] }}</div>
+            <p>Accuracy Score</p>
+        </div>
+    </div>
+
+    <div class="section-label" style="margin-bottom:12px;">Full Metrics</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Metric</th>
+                <th>Logistic Regression</th>
+                <th>Random Forest</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for metric in ["Accuracy", "Precision", "Recall", "F1 Score"] %}
+            <tr>
+                <td>{{ metric }}</td>
+                <td>{{ results["Logistic Regression"][metric] }}</td>
+                <td class="winner">{{ results["Random Forest"][metric] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="chart-card">
+        <div class="chart-title">Visual Comparison</div>
+        <canvas id="comparisonChart"></canvas>
+    </div>
+
+</div>
+
+<script>
+    const metrics = ["Accuracy", "Precision", "Recall", "F1 Score"];
+    const lrValues = [
+        {{ results["Logistic Regression"]["Accuracy"] }},
+        {{ results["Logistic Regression"]["Precision"] }},
+        {{ results["Logistic Regression"]["Recall"] }},
+        {{ results["Logistic Regression"]["F1 Score"] }}
+    ];
+    const rfValues = [
+        {{ results["Random Forest"]["Accuracy"] }},
+        {{ results["Random Forest"]["Precision"] }},
+        {{ results["Random Forest"]["Recall"] }},
+        {{ results["Random Forest"]["F1 Score"] }}
+    ];
+
+    new Chart(document.getElementById("comparisonChart"), {
+        type: "bar",
+        data: {
+            labels: metrics,
+            datasets: [
+                {
+                    label: "Logistic Regression",
+                    data: lrValues,
+                    backgroundColor: "rgba(37, 99, 235, 0.15)",
+                    borderColor: "#2563eb",
+                    borderWidth: 2,
+                    borderRadius: 6
+                },
+                {
+                    label: "Random Forest",
+                    data: rfValues,
+                    backgroundColor: "rgba(22, 163, 74, 0.15)",
+                    borderColor: "#16a34a",
+                    borderWidth: 2,
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: "#64748b",
+                        font: { family: "Inter", size: 12 }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    min: 0,
+                    max: 1,
+                    ticks: { color: "#94a3b8", font: { family: "Inter" } },
+                    grid: { color: "#f1f5f9" }
+                },
+                x: {
+                    ticks: { color: "#94a3b8", font: { family: "Inter" } },
+                    grid: { color: "#f1f5f9" }
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
