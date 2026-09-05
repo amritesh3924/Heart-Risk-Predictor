@@ -6,9 +6,9 @@
         "F1 Score": 0.708
     },
     "Random Forest": {
-        "Accuracy": 0.7063,
-        "Precision": 0.7094,
-        "Recall": 0.6956,
-        "F1 Score": 0.7024
+        "Accuracy": 0.734,
+        "Precision": 0.7598,
+        "Recall": 0.6817,
+        "F1 Score": 0.7186
     }
 }

@@ -1,3 +1,4 @@
+
 from flask import Flask, request, jsonify, render_template, redirect, url_for, flash, make_response
 import io
 from flask_sqlalchemy import SQLAlchemy
@@ -18,14 +19,6 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
-
-# Train model if not exists
-import os
-if not os.path.exists("heart_model.pkl"):
-    print("Training model...")
-    import subprocess
-    subprocess.run(["python", "day1_model.py"], check=True)
-    print("Model trained successfully!")
 
 # Load model and scaler
 model = joblib.load("heart_model.pkl")
@@ -151,6 +144,7 @@ def predict():
 
     input_array = np.array(features).reshape(1, -1)
     probability = model.predict_proba(input_array)[0][1]
+
     risk_percent = round(probability * 100, 2)
 
     if risk_percent >= 70:
