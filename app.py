@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for, f
 import io
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
+import bcrypt
 import joblib
 import numpy as np
 import json
@@ -71,7 +71,7 @@ def login():
         email = request.form.get("email")
         password = request.form.get("password")
         user = User.query.filter_by(email=email).first()
-        if user and check_password_hash(user.password, password):
+        if user and bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
             login_user(user)
             return redirect(url_for("predict_page"))
         flash("Invalid email or password")
@@ -87,7 +87,7 @@ def register():
         if existing_user:
             flash("Email already registered")
             return redirect(url_for("register"))
-        hashed_password = generate_password_hash(password)
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         new_user = User(name=name, email=email, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
