@@ -2,12 +2,16 @@
 
 A full-stack machine learning web application that predicts cardiovascular disease risk based on health indicators, tracks user health progress over time, and provides personalized recommendations.
 
-![Python](https://img.shields.io/badge/Python-3.12-blue) ![Flask](https://img.shields.io/badge/Flask-3.x-green) ![ML](https://img.shields.io/badge/ML-RandomForest-orange) ![License](https://img.shields.io/badge/License-MIT-yellow)
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![Flask](https://img.shields.io/badge/Flask-3.x-green)
+![ML](https://img.shields.io/badge/ML-RandomForest-orange)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ---
 
 ## 🚀 Live Demo
-> Coming soon — deployment in progress
+
+**[Try it live →](https://heartguard-latest.onrender.com)**
 
 ---
 
@@ -35,61 +39,68 @@ HeartGuard is not just a basic ML predictor — it's a complete health tracking 
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | HTML, CSS, JavaScript, Chart.js |
-| Backend | Python, Flask |
-| Database | SQLite (via Flask-SQLAlchemy) |
-| Authentication | Flask-Login, Werkzeug |
-| Machine Learning | Scikit-learn (Random Forest, Logistic Regression) |
-| PDF Generation | ReportLab |
-| Dataset | Cardiovascular Disease Dataset — Kaggle (70,000 records) |
+| Layer            | Technology                                               |
+| ---------------- | --------------------------------------------------------- |
+| Frontend         | HTML, CSS, JavaScript, Chart.js                          |
+| Backend          | Python, Flask                                            |
+| Database         | SQLite (via Flask-SQLAlchemy)                            |
+| Authentication   | Flask-Login, bcrypt                                       |
+| Machine Learning | Scikit-learn (Random Forest, Logistic Regression)        |
+| PDF Generation   | ReportLab                                                 |
+| Deployment       | Docker, Render                                            |
+| Dataset          | Cardiovascular Disease Dataset — Kaggle (70,000 records) |
 
 ---
 
 ## 📊 Model Performance
 
-| Metric | Logistic Regression | Random Forest |
-|--------|-------------------|---------------|
-| Accuracy | 72.53% | 70.63% |
-| Precision | 75.25% | 70.94% |
-| Recall | 66.85% | 69.56% |
-| F1 Score | 70.80% | 70.24% |
+| Metric    | Logistic Regression | Random Forest |
+| --------- | -------------------- | -------------- |
+| Accuracy  | 72.53%               | 73.4%          |
+| Precision | 75.25%               | 75.98%         |
+| Recall    | 66.85%                | 68.17%         |
+| F1 Score  | 70.8%                | 71.86%         |
 
-> Random Forest was selected for deployment due to its superior ability to handle non-linear relationships and robustness to unseen data, despite marginally lower accuracy on the test set.
+> Random Forest outperformed Logistic Regression across every metric and was selected for deployment.
 
 ---
 
 ## 📁 Project Structure
+
+```
 heart-risk-predictor/
-├── app.py                  # Flask application, routes, auth, DB models
-├── day1_model.py           # ML training script
-├── heart_model.pkl         # Trained Random Forest model
-├── scaler.pkl              # StandardScaler for feature normalization
-├── comparison_results.json # Model comparison metrics
-├── feature_names.json      # Feature names used in training
-├── heart.csv               # Dataset (Cardiovascular Disease — Kaggle)
-├── requirements.txt        # Python dependencies
-├── Procfile                # Deployment configuration
+├── app.py                   # Flask application, routes, auth, DB models
+├── day1_model.py             # ML training script
+├── heart_model.pkl           # Trained Random Forest model
+├── scaler.pkl                 # StandardScaler for feature normalization
+├── comparison_results.json    # Model comparison metrics
+├── feature_names.json         # Feature names used in training
+├── heart.csv                  # Dataset (Cardiovascular Disease — Kaggle)
+├── requirements.txt           # Python dependencies
+├── Procfile                   # Deployment configuration
+├── Dockerfile                 # Container build configuration
 └── templates/
-├── landing.html        # Public landing page
-├── login.html          # User login
-├── register.html       # User registration
-├── index.html          # Multi-step prediction form
-├── dashboard.html      # Health dashboard
-└── history.html        # Prediction history
+    ├── landing.html           # Public landing page
+    ├── login.html             # User login
+    ├── register.html          # User registration
+    ├── index.html              # Multi-step prediction form
+    ├── dashboard.html          # Health dashboard
+    └── history.html            # Prediction history
+```
 
 ---
 
 ## ⚙️ How to Run Locally
 
 **1. Clone the repository**
+
 ```bash
-git clone https://github.com/amritesh-git/heart-risk-predictor.git
-cd heart-risk-predictor
+git clone https://github.com/amritesh3924/Heart-Risk-Predictor.git
+cd Heart-Risk-Predictor
 ```
 
 **2. Create and activate virtual environment**
+
 ```bash
 python -m venv venv
 venv\Scripts\activate        # Windows
@@ -97,24 +108,29 @@ source venv/bin/activate     # Mac/Linux
 ```
 
 **3. Install dependencies**
+
 ```bash
 pip install -r requirements.txt
 ```
 
 **4. Download the dataset**
+
 Download the Cardiovascular Disease Dataset from [Kaggle](https://www.kaggle.com/datasets/sulianova/cardiovascular-disease-dataset) and save it as `heart.csv` in the project root.
 
 **5. Train the model**
+
 ```bash
 python day1_model.py
 ```
 
 **6. Run the application**
+
 ```bash
 python app.py
 ```
 
 **7. Open in browser**
+
 http://127.0.0.1:5000/
 
 ---
@@ -125,7 +141,7 @@ http://127.0.0.1:5000/
 - **Preprocessing:** Removed outliers in blood pressure, height, weight, and BMI. Converted age from days to years. Calculated BMI from height and weight.
 - **Models Trained:** Logistic Regression and Random Forest
 - **Evaluation Metrics:** Accuracy, Precision, Recall, F1 Score
-- **Selected Model:** Random Forest — better generalization on unseen data
+- **Selected Model:** Random Forest — best performer across all metrics
 - **Features Used:** Age, Gender, Height, Weight, BMI, Systolic BP, Diastolic BP, Cholesterol, Glucose, Smoking, Alcohol, Physical Activity
 
 ---
@@ -148,7 +164,7 @@ Most student ML projects stop at a basic prediction form. HeartGuard goes furthe
 - **Records:** 70,000 patient records
 - **Features:** Age, Gender, Height, Weight, Blood Pressure, Cholesterol, Glucose, Smoking, Alcohol, Physical Activity
 - **Target:** Presence or absence of cardiovascular disease (binary)
-- **Preprocessing:** Outlier removal reduced dataset to ~68,000 clean records
+- **Preprocessing:** Outlier removal reduced dataset to 68,599 clean records
 
 ---
 
@@ -161,7 +177,7 @@ This application is for informational and educational purposes only. It does not
 ## 👨‍💻 Developer
 
 **Amritesh** — Information Science & Engineering, BMSIT Bengaluru  
-GitHub: [@amritesh-git](https://github.com/amritesh-git)
+GitHub: [@amritesh3924](https://github.com/amritesh3924)
 
 ---
 
