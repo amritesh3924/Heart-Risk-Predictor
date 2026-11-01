@@ -9,7 +9,6 @@ COPY app.py .
 COPY heart_model.pkl .
 COPY scaler.pkl .
 COPY templates/ templates/
-COPY static/ static/
 
 EXPOSE 8080
 
