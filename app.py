@@ -1,19 +1,26 @@
 
-from flask import Flask, request, jsonify, render_template, redirect, url_for, flash, make_response
 import io
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+import os
+import secrets
+from datetime import datetime, timezone, timedelta
+
 import bcrypt
 import joblib
 import numpy as np
-import json
-from datetime import datetime, timezone, timedelta
+from flask import Flask, request, jsonify, render_template, redirect, url_for, flash, make_response
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from reportlab.lib.colors import HexColor
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "heartguard-secret-key-2024"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///heartguard.db"
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///heartguard.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
@@ -52,6 +59,40 @@ class Prediction(db.Model):
     active = db.Column(db.Integer)
     risk_percent = db.Column(db.Float)
     risk_level = db.Column(db.String(20))
+
+REQUIRED_FIELDS = ["age", "gender", "height", "weight", "ap_hi", "ap_lo",
+                   "cholesterol", "gluc", "smoke", "alco", "active"]
+
+
+def calculate_bmi(height_cm, weight_kg):
+    """BMI = weight (kg) / height (m) squared, rounded to 2 decimals."""
+    return round(weight_kg / ((height_cm / 100) ** 2), 2)
+
+
+def get_risk_level(risk_percent):
+    """Map a risk percentage to Low / Moderate / High."""
+    if risk_percent >= 70:
+        return "High"
+    if risk_percent >= 40:
+        return "Moderate"
+    return "Low"
+
+
+def validate_input(data):
+    """Return an error message for bad input, or None if the input is valid."""
+    if not isinstance(data, dict):
+        return "Request body must be JSON"
+    for field in REQUIRED_FIELDS:
+        if field not in data:
+            return f"Missing field: {field}"
+        try:
+            float(data[field])
+        except (TypeError, ValueError):
+            return f"Invalid value for {field}"
+    if float(data["height"]) <= 0 or float(data["weight"]) <= 0:
+        return "Height and weight must be positive"
+    return None
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -121,11 +162,14 @@ def dashboard():
 @app.route("/predict", methods=["POST"])
 @login_required
 def predict():
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    error = validate_input(data)
+    if error:
+        return jsonify({"error": error}), 400
 
     height = float(data["height"])
     weight = float(data["weight"])
-    bmi = round(weight / ((height / 100) ** 2), 2)
+    bmi = calculate_bmi(height, weight)
 
     features = [
         float(data["age"]),
@@ -147,12 +191,7 @@ def predict():
 
     risk_percent = round(probability * 100, 2)
 
-    if risk_percent >= 70:
-        risk_level = "High"
-    elif risk_percent >= 40:
-        risk_level = "Moderate"
-    else:
-        risk_level = "Low"
+    risk_level = get_risk_level(risk_percent)
 
     # Save prediction to database
     prediction = Prediction(
@@ -230,19 +269,11 @@ def delete_prediction(prediction_id):
     db.session.commit()
     return redirect(url_for("history"))
 
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.colors import HexColor
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.units import inch
-from flask import make_response
-import io
-
 @app.route("/report/<int:prediction_id>")
 @login_required
 def generate_report(prediction_id):
     prediction = Prediction.query.get_or_404(prediction_id)
-    
+
     if prediction.user_id != current_user.id:
         return "Unauthorized", 403
 
@@ -251,7 +282,6 @@ def generate_report(prediction_id):
                            rightMargin=inch, leftMargin=inch,
                            topMargin=inch, bottomMargin=inch)
 
-    styles = getSampleStyleSheet()
     elements = []
 
     # Colors
@@ -281,7 +311,7 @@ def generate_report(prediction_id):
     # Risk Result
     risk_color = red if prediction.risk_level == "High" else (yellow if prediction.risk_level == "Moderate" else green)
     elements.append(Paragraph("Risk Assessment Result", heading_style))
-    
+
     risk_data = [
         ["Risk Score", "Risk Level", "Assessment Date"],
         [f"{prediction.risk_percent}%", prediction.risk_level, prediction.timestamp.strftime('%d %b %Y')]
@@ -307,10 +337,10 @@ def generate_report(prediction_id):
 
     # Health Details
     elements.append(Paragraph("Health Parameters", heading_style))
-    
+
     chol_map = {1: "Normal", 2: "Above Normal", 3: "Well Above Normal"}
     gluc_map = {1: "Normal", 2: "Above Normal", 3: "Well Above Normal"}
-    
+
     health_data = [
         ["Parameter", "Value"],
         ["Age", f"{prediction.age} years"],
@@ -346,7 +376,7 @@ def generate_report(prediction_id):
 
     # Recommendations
     elements.append(Paragraph("Personalized Recommendations", heading_style))
-    
+
     tips_map = {
         "Low": [
             "Maintain your current healthy lifestyle.",
@@ -399,4 +429,4 @@ with app.app_context():
     db.create_all()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=os.environ.get("FLASK_DEBUG") == "1")
